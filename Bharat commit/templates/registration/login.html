@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+
+{% block title %}Operator Login — ExtensionSentry{% endblock %}
+
+{% block content %}
+<section class="auth-shell">
+    <div class="auth-grid">
+        <aside class="glass-panel auth-aside dense-panel" data-reveal>
+            <div class="panel-head">
+                <h1>OP GATEWAY</h1>
+                <span class="nav-chip"><span class="status-dot is-live"></span>&nbsp;SECURE</span>
+            </div>
+
+            <div style="text-align:center;padding:16px 0 10px">
+                <div style="width:72px;height:72px;border-radius:50%;border:2px solid var(--cyan);margin:0 auto 12px;display:grid;place-items:center;box-shadow:0 0 24px rgba(0,229,255,0.3)">
+                    <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#00e5ff" stroke-width="2" stroke-linecap="round">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                    </svg>
+                </div>
+                <strong style="color:var(--cyan);font-size:1.1rem;font-weight:800;text-shadow:0 0 12px var(--cyan-glow)">ExtensionSentry</strong>
+                <p style="color:var(--muted);font-size:0.7rem;text-transform:uppercase;letter-spacing:0.14em;margin-top:4px">Forensic OPS Platform</p>
+            </div>
+
+            <div class="metric-strip metric-strip-2">
+                <div class="metric-tile green">
+                    <span>INTAKE READY</span>
+                    <strong>YES</strong>
+                </div>
+                <div class="metric-tile green">
+                    <span>SCORING CORE</span>
+                    <strong>YES</strong>
+                </div>
+                <div class="metric-tile green">
+                    <span>IOC TRACK</span>
+                    <strong>YES</strong>
+                </div>
+                <div class="metric-tile green">
+                    <span>PDF SYNTHESIS</span>
+                    <strong>YES</strong>
+                </div>
+            </div>
+
+            <div class="telemetry-thin">
+                <span class="telemetry-chip">AUTH GATE</span>
+                <span class="telemetry-chip">CSRF LOCK</span>
+                <span class="telemetry-chip">SESSION BIND</span>
+                <span class="telemetry-chip">ROUTE SAFE</span>
+            </div>
+
+            <div class="terminal-card dense-panel" style="margin-top:12px">
+                <div class="terminal-header"><span></span><span></span><span></span><strong>access-gateway</strong></div>
+                <div class="terminal-lines" data-terminal="login">
+                    <p class="info">> auth gate validation</p>
+                    <p>> csrf session lock</p>
+                    <p class="info">> cockpit shell ready</p>
+                </div>
+            </div>
+
+            <div class="wave-surface" data-wave></div>
+        </aside>
+
+        <div class="glass-panel auth-card dense-panel" data-reveal style="display:grid;align-content:center">
+            <div style="text-align:center;margin-bottom:20px">
+                <h2 style="font-size:1.4rem;font-weight:800;color:var(--text);margin:0 0 6px">WELCOME BACK</h2>
+                <p style="color:var(--muted);font-size:0.78rem">Sign in to access your forensic dashboard</p>
+            </div>
+
+            <form method="post" class="form-stack">
+                {% csrf_token %}
+                {{ form.non_field_errors }}
+                <label class="cyber-label">
+                    <span>Username or Email</span>
+                    {{ form.username }}
+                </label>
+                <label class="cyber-label">
+                    <span>Password</span>
+                    {{ form.password }}
+                </label>
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-top:2px">
+                    <label style="display:flex;align-items:center;gap:6px;font-size:0.76rem;color:var(--muted);cursor:pointer">
+                        <input type="checkbox" style="width:auto;min-height:auto;accent-color:var(--cyan)"> Remember me
+                    </label>
+                    <span style="font-size:0.72rem;color:var(--muted)">Forgot Password?</span>
+                </div>
+                <button class="neon-button full" type="submit" style="margin-top:8px;font-size:0.88rem">Sign In</button>
+            </form>
+
+            <div class="auth-footer">
+                <div class="auth-signal">
+                    <span class="status-dot is-live"></span>
+                    Secure Access · Protected by ExtensionSentry
+                </div>
+                <p class="auth-link" style="text-align:center">
+                    NEED WORKSPACE? <a href="{% url 'signup' %}">CREATE NODE</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

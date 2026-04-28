@@ -1,0 +1,13 @@
+{% if messages %}
+    <div class="toast-stack" role="status" aria-live="polite">
+        {% for message in messages %}
+            <div class="cyber-toast cyber-toast-{{ message.tags }}" data-reveal>
+                <span class="toast-dot"></span>
+                <div class="toast-copy">
+                    <strong>Platform Notice</strong>
+                    <span>{{ message }}</span>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% endif %}

@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block title %}Create Operator Node - ExtensionSentry{% endblock %}
+
+{% block content %}
+<section class="auth-layout">
+    <div class="auth-card">
+        <p class="kicker">Provision Node</p>
+        <h1>Create workspace.</h1>
+        <form method="post" class="form-stack">
+            {% csrf_token %}
+            {{ form.non_field_errors }}
+            {% for field in form %}
+                <label class="cyber-label">
+                    <span>{{ field.label }}</span>
+                    {{ field }}
+                    {{ field.errors }}
+                </label>
+            {% endfor %}
+            <button class="neon-button full" type="submit">Create Operator Node</button>
+        </form>
+        <p class="auth-link">Already provisioned? <a href="{% url 'login' %}">Authenticate</a></p>
+    </div>
+</section>
+{% endblock %}

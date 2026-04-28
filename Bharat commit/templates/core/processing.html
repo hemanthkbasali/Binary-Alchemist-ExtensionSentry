@@ -1,0 +1,179 @@
+{% extends "base.html" %}
+
+{% block title %}Processing Artifact — ExtensionSentry{% endblock %}
+
+{% block content %}
+<section class="processing-stage" data-processing data-next-url="{% url 'forensic_results' scan.id %}" data-processing-target="{{ processing_progress_target|default:100 }}">
+
+    {# ─── SCAN MONITOR HEADER ─────────────────────────────── #}
+    <article class="glass-panel dense-panel" data-reveal>
+        <div class="panel-head">
+            <h1>ANALYSIS IN PROGRESS // REAL-TIME TELEMETRY</h1>
+            <span class="nav-chip"><span class="status-dot is-live"></span>&nbsp;ENGINE: ACTIVE</span>
+        </div>
+        <div class="metric-strip metric-strip-4">
+            <div class="metric-tile">
+                <span>ARTIFACT</span>
+                <strong style="font-size:0.82rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ scan.extension.name|truncatechars:22 }}</strong>
+            </div>
+            <div class="metric-tile">
+                <span>FILES</span>
+                <strong>{{ telemetry.files|default:0 }}</strong>
+            </div>
+            <div class="metric-tile amber">
+                <span>JS FILES</span>
+                <strong>{{ telemetry.js_files|default:0 }}</strong>
+            </div>
+            <div class="metric-tile">
+                <span>IOC / URLS</span>
+                <strong>{{ telemetry.urls|default:0 }}</strong>
+            </div>
+        </div>
+        <div class="metric-strip metric-strip-4">
+            <div class="metric-tile green">
+                <span>MANIFEST LANE</span>
+                <strong>RUN</strong>
+            </div>
+            <div class="metric-tile green">
+                <span>SCORING CORE</span>
+                <strong>RUN</strong>
+            </div>
+            <div class="metric-tile green">
+                <span>PDF SYNTHESIS</span>
+                <strong>RUN</strong>
+            </div>
+            <div class="metric-tile">
+                <span>QUEUE STATUS</span>
+                <strong style="color:var(--orange)">LOCK</strong>
+            </div>
+        </div>
+        <div class="progress-block">
+            <div class="progress-meta">
+                <span style="font-size:0.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em">OVERALL PROGRESS</span>
+                <strong data-progress-label style="color:var(--cyan)">{{ processing_progress_target|default:100 }}%</strong>
+            </div>
+            <div class="progress-bar"><span data-progress-bar></span></div>
+        </div>
+        <div class="processing-status-band">
+            <span class="nav-chip" data-processing-status>ARCHIVE: STAGED</span>
+            <span class="nav-chip" style="font-family:'JetBrains Mono',monospace;font-size:0.62rem">SHA {{ telemetry.sha256|default:"unknown" }}</span>
+            <span class="nav-chip"><span class="status-dot is-live"></span>&nbsp;SCAN ID: {{ scan.id }}</span>
+        </div>
+        <div class="telemetry-thin" style="margin-top:10px">
+            <span class="telemetry-chip">ARCHIVE</span>
+            <span class="telemetry-chip">MANIFEST LANE</span>
+            <span class="telemetry-chip">JS ENGINE</span>
+            <span class="telemetry-chip">IOC TRACK</span>
+            <span class="telemetry-chip">SCORING CORE</span>
+        </div>
+        <div class="wave-surface" data-wave></div>
+    </article>
+
+    {# ─── LOWER GRID: Stage Tracker + Real-Time Terminal + Side Panel ─── #}
+    <section class="processing-lower-grid">
+        <article class="glass-panel dense-panel" data-reveal>
+            <div class="panel-head"><h3>PIPELINE STAGES</h3><span class="pulse-badge">PIPELINE</span></div>
+            <div class="phase-stack">
+                <div class="phase-step" data-stage="0">
+                    <div class="phase-disc">01</div>
+                    <div>
+                        <strong>File Meta</strong>
+                        <p style="color:var(--green)">Completed</p>
+                    </div>
+                </div>
+                <div class="phase-step" data-stage="1">
+                    <div class="phase-disc">02</div>
+                    <div>
+                        <strong>Static Analysis</strong>
+                        <p style="color:var(--green)">Completed</p>
+                    </div>
+                </div>
+                <div class="phase-step" data-stage="2">
+                    <div class="phase-disc">03</div>
+                    <div>
+                        <strong>Deobfuscation</strong>
+                        <p style="color:var(--orange)">Running…</p>
+                    </div>
+                </div>
+                <div class="phase-step" data-stage="3">
+                    <div class="phase-disc">04</div>
+                    <div>
+                        <strong>IOC Extraction</strong>
+                        <p style="color:var(--muted)">Pending</p>
+                    </div>
+                </div>
+                <div class="phase-step" data-stage="4">
+                    <div class="phase-disc">05</div>
+                    <div>
+                        <strong>Report Generation</strong>
+                        <p style="color:var(--muted)">Pending</p>
+                    </div>
+                </div>
+            </div>
+        </article>
+
+        <div style="display:grid;gap:10px;align-content:start">
+            <article class="terminal-card dense-panel" data-reveal>
+                <div class="terminal-header">
+                    <span></span><span></span><span></span>
+                    <strong>scan-telemetry-log</strong>
+                    <span class="live-badge">● LIVE</span>
+                </div>
+                <div class="terminal-lines" data-terminal="processing">
+                    {% for line in stage_log %}
+                        <p>> {{ line }}</p>
+                    {% empty %}
+                        <p class="info">> pipeline: initializing</p>
+                        <p>> archive: staged</p>
+                    {% endfor %}
+                </div>
+            </article>
+
+            <article class="glass-panel dense-panel" data-reveal>
+                <div class="panel-head"><h3>ANALYSIS DETAILS</h3><span class="nav-chip">LIVE</span></div>
+                <div class="metric-strip metric-strip-2" style="margin-bottom:6px">
+                    <div class="metric-tile">
+                        <span>Filename</span>
+                        <strong style="font-size:0.76rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ scan.extension.name|truncatechars:20 }}</strong>
+                    </div>
+                    <div class="metric-tile">
+                        <span>File Size</span>
+                        <strong>{{ telemetry.files|default:0 }} files</strong>
+                    </div>
+                </div>
+                <div class="metric-strip metric-strip-2">
+                    <div class="metric-tile">
+                        <span>File Type</span>
+                        <strong style="color:var(--cyan)">ZIP Archive</strong>
+                    </div>
+                    <div class="metric-tile">
+                        <span>Started At</span>
+                        <strong style="font-size:0.72rem;font-family:'JetBrains Mono',monospace" data-live-time></strong>
+                    </div>
+                </div>
+
+                <div class="radar-panel">
+                    <div class="radar">
+                        <span class="radar-sweep"></span>
+                        <span class="radar-dot dot-a"></span>
+                        <span class="radar-dot dot-b"></span>
+                        <span class="radar-dot dot-c"></span>
+                        <span class="radar-dot dot-d"></span>
+                    </div>
+                </div>
+
+                <div class="telemetry-ticker processing-ticker" style="margin-top:8px">
+                    <div class="telemetry-ticker-track" data-marquee>
+                        <span>ARCHIVE EXTRACTION</span>
+                        <span>MANIFEST ANALYSIS</span>
+                        <span>JS HEURISTICS</span>
+                        <span>IOC COMMUNICATION MAPPING</span>
+                        <span>THREAT SCORING</span>
+                        <span>REPORT SYNTHESIS</span>
+                    </div>
+                </div>
+            </article>
+        </div>
+    </section>
+</section>
+{% endblock %}

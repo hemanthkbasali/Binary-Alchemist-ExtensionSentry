@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block title %}Integrations - ExtensionSentry{% endblock %}
+{% block eyebrow %}Security operations{% endblock %}
+{% block page_title %}Integrations{% endblock %}
+
+{% block content %}
+<section class="two-column">
+    <form method="post" class="panel form-panel">
+        {% csrf_token %}
+        <h2>Add Integration</h2>
+        {{ form.non_field_errors }}
+        {% for field in form %}
+            <label>
+                <span>{{ field.label }}</span>
+                {{ field }}
+                {{ field.errors }}
+            </label>
+        {% endfor %}
+        <button class="button button-primary" type="submit">Save integration</button>
+    </form>
+    <div class="panel">
+        <div class="panel-heading">
+            <h2>Configured</h2>
+        </div>
+        <div class="compact-list">
+            {% for integration in integrations %}
+                <div class="compact-item">
+                    <span>
+                        {{ integration.name }}
+                        <small>{{ integration.get_provider_display }} - {{ integration.endpoint_url|default:"No endpoint" }}</small>
+                    </span>
+                    <strong>{% if integration.enabled %}Enabled{% else %}Disabled{% endif %}</strong>
+                </div>
+            {% empty %}
+                <p class="empty-state">No integrations configured.</p>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endblock %}
