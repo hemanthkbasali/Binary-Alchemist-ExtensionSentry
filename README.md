@@ -1,29 +1,30 @@
-# ExtensionSentry Forensic Grid
+# Binary-Alchemist-ExtensionSentry
 
-Futuristic Django cybersecurity product for static Chrome extension ZIP forensics. Upload an extension archive, watch the processing animation, review deterministic findings, and download a PDF intelligence report.
+ExtensionSentry is a cybersecurity-focused browser extension forensic intelligence platform designed to statically inspect Chrome extension packages and identify suspicious or elevated-risk behaviors before installation.
 
-## Run
+## Development Progress
+The project is being collaboratively developed during the hackathon through modular integration of backend architecture, application workflow handlers, and static analysis intelligence components.
 
-```powershell
-python -m pip install -r requirements.txt
-python manage.py migrate
-python manage.py seed_demo
-python manage.py runserver
-```
+## Implemented Modules
+- Django backend project initialization
+- Dashboard workflow and request routing
+- Core interaction templates
+- Static asset integration
+- Scanner ingestion pipeline
+- Manifest permission analyzer
+- JavaScript suspicious pattern heuristic analyzer
 
-Open `http://127.0.0.1:8000/`.
+## Current Focus
+The scanner intelligence engine has now been integrated to process uploaded extension packages and extract preliminary threat indicators for further scoring.
 
-Demo operator login:
+## Upcoming Enhancements
+- Threat score aggregation
+- Forensic PDF report generation
+- IOC summarization dashboard
+- Final result visualization polishing
 
-- Email: `analyst@example.com`
-- Password: `SecurePass123!`
-
-## Scanner Pipeline
-
-- `scanner/file_handler.py` - safe ZIP extraction, archive limits, manifest discovery
-- `scanner/manifest_analyzer.py` - Chrome manifest permissions, CSP, host access, messaging checks
-- `scanner/js_analyzer.py` - JavaScript static malware heuristics
-- `scanner/communication_analyzer.py` - URLs, domains, IPs, WebSocket and exfil indicators
-- `scanner/scoring_engine.py` - deterministic severity scoring
-- `scanner/report_generator.py` - PDF intelligence report generation
-- `scanner/utils.py` - shared hashing, decoding, entropy, IOC extraction helpers
+## Tech Stack
+- Python
+- Django
+- HTML/CSS/JavaScript
+- Static Heuristic Analysis
