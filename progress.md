@@ -7,11 +7,13 @@
 - Static asset directories connected
 - Added core application routes and dashboard handlers
 - Connected interaction templates for scan workflow
+- Integrated static analysis ingestion modules
+- Added manifest and JavaScript heuristic analyzers
 
 ## Current Progress
-Core module integration in progress. Preparing extension upload ingestion and analysis workflow.
+Scanner intelligence engine under integration. Threat scoring and report synthesis pending.
 
 ## Next Steps
-- Integrate extension package processing
-- Add scanner intelligence engine
+- Finalize scoring aggregation
 - Generate forensic reports
+- Polish result dashboards
