@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block title %}{{ extension.name }} - ExtensionSentry{% endblock %}
+{% block eyebrow %}Extension Detail{% endblock %}
+{% block page_title %}{{ extension.name }}{% endblock %}
+{% block header_actions %}
+<a class="button button-primary" href="{% url 'scan_new' %}">Scan another</a>
+{% endblock %}
+
+{% block content %}
+<section class="detail-grid">
+    <div class="panel">
+        <h2>Profile</h2>
+        <dl class="definition-list">
+            <dt>Extension ID</dt><dd>{{ extension.extension_id }}</dd>
+            <dt>Publisher</dt><dd>{{ extension.publisher|default:"Unknown" }}</dd>
+            <dt>Store</dt><dd>{{ extension.get_store_display }}</dd>
+            <dt>Version</dt><dd>{{ extension.version|default:"Unknown" }}</dd>
+            <dt>Install base</dt><dd>{{ extension.install_base }}</dd>
+            <dt>Status</dt><dd>{{ extension.get_status_display }}</dd>
+        </dl>
+    </div>
+    <div class="panel risk-panel">
+        <h2>Risk Score</h2>
+        <div class="risk-ring" style="--score: {{ extension.latest_risk_score }}">
+            <span>{{ extension.latest_risk_score }}</span>
+        </div>
+        <p>Last scanned {{ extension.last_scanned_at|date:"M j, Y H:i"|default:"never" }}.</p>
+    </div>
+</section>
+
+<section class="two-column">
+    <div class="panel">
+        <div class="panel-heading"><h2>Recent Scans</h2></div>
+        <div class="compact-list">
+            {% for scan in scans %}
+                <a class="compact-item" href="{{ scan.get_absolute_url }}">
+                    <span>{{ scan.created_at|date:"M j, Y H:i" }}</span>
+                    <strong>{{ scan.risk_score }}/100</strong>
+                </a>
+            {% empty %}
+                <p class="empty-state">No scans recorded.</p>
+            {% endfor %}
+        </div>
+    </div>
+    <div class="panel">
+        <div class="panel-heading"><h2>Open Findings</h2></div>
+        <div class="finding-list">
+            {% for finding in findings %}
+                <a class="finding-item" href="{{ finding.scan_run.get_absolute_url }}">
+                    <span class="severity-dot severity-{{ finding.severity }}"></span>
+                    <span>
+                        <strong>{{ finding.title }}</strong>
+                        <small>{{ finding.get_severity_display }} - {{ finding.status }}</small>
+                    </span>
+                </a>
+            {% empty %}
+                <p class="empty-state">No open findings.</p>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endblock %}

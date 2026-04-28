@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block title %}Reports - ExtensionSentry{% endblock %}
+{% block eyebrow %}Evidence exports{% endblock %}
+{% block page_title %}Reports{% endblock %}
+
+{% block content %}
+<section class="two-column">
+    <div class="panel">
+        <div class="panel-heading">
+            <h2>Generate</h2>
+        </div>
+        <div class="compact-list">
+            {% for scan in scans %}
+                <form method="post" action="{% url 'report_generate' scan.id %}" class="compact-item compact-form">
+                    {% csrf_token %}
+                    <span>{{ scan.extension.name }} <small>{{ scan.created_at|date:"M j, Y H:i" }}</small></span>
+                    <select name="report_type">
+                        <option value="technical">Technical</option>
+                        <option value="executive">Executive</option>
+                        <option value="compliance">Compliance</option>
+                    </select>
+                    <button class="button button-secondary" type="submit">Generate</button>
+                </form>
+            {% empty %}
+                <p class="empty-state">Run a scan before generating reports.</p>
+            {% endfor %}
+        </div>
+    </div>
+    <div class="panel">
+        <div class="panel-heading">
+            <h2>Report Library</h2>
+        </div>
+        <div class="compact-list">
+            {% for report in reports %}
+                <div class="compact-item">
+                    <span>
+                        {{ report.title }}
+                        <small>{{ report.generated_at|date:"M j, Y H:i" }} - {{ report.file_path }}</small>
+                    </span>
+                    <strong>{{ report.get_report_type_display }}</strong>
+                </div>
+            {% empty %}
+                <p class="empty-state">No reports generated yet.</p>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endblock %}

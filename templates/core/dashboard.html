@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - ExtensionSentry{% endblock %}
+{% block eyebrow %}{{ organization.name }}{% endblock %}
+{% block page_title %}Security Dashboard{% endblock %}
+{% block header_actions %}
+<a class="button button-primary" href="{% url 'scan_new' %}">New scan</a>
+{% endblock %}
+
+{% block content %}
+<section class="metric-grid">
+    <article class="metric-card">
+        <span>Extensions</span>
+        <strong>{{ stats.extensions }}</strong>
+    </article>
+    <article class="metric-card">
+        <span>Scans</span>
+        <strong>{{ stats.scans }}</strong>
+    </article>
+    <article class="metric-card">
+        <span>Open findings</span>
+        <strong>{{ stats.open_findings }}</strong>
+    </article>
+    <article class="metric-card metric-hot">
+        <span>Critical or high</span>
+        <strong>{{ stats.critical_high }}</strong>
+    </article>
+</section>
+
+<section class="two-column">
+    <div class="panel">
+        <div class="panel-heading">
+            <h2>Risk Distribution</h2>
+        </div>
+        <div class="severity-stack">
+            {% for severity, count in severity_data.items %}
+                <div class="severity-row">
+                    <span class="severity-label severity-{{ severity }}">{{ severity|title }}</span>
+                    <div class="severity-track"><span style="width: {% widthratio count stats.open_findings|default:1 100 %}%"></span></div>
+                    <strong>{{ count }}</strong>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+    <div class="panel">
+        <div class="panel-heading">
+            <h2>Monitored Extensions</h2>
+            <a href="{% url 'extension_list' %}">View all</a>
+        </div>
+        <div class="compact-list">
+            {% for extension in extensions %}
+                <a href="{{ extension.get_absolute_url }}" class="compact-item">
+                    <span>{{ extension.name }}</span>
+                    <strong>{{ extension.latest_risk_score }}/100</strong>
+                </a>
+            {% empty %}
+                <p class="empty-state">No extensions have been scanned yet.</p>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<section class="two-column">
+    <div class="panel">
+        <div class="panel-heading">
+            <h2>Recent Scans</h2>
+            <a href="{% url 'scan_new' %}">Run scan</a>
+        </div>
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr><th>Extension</th><th>Status</th><th>Risk</th><th>Created</th></tr>
+                </thead>
+                <tbody>
+                {% for scan in latest_scans %}
+                    <tr>
+                        <td><a href="{{ scan.get_absolute_url }}">{{ scan.extension.name }}</a></td>
+                        <td><span class="pill">{{ scan.get_status_display }}</span></td>
+                        <td>{{ scan.risk_score }}/100</td>
+                        <td>{{ scan.created_at|date:"M j, Y" }}</td>
+                    </tr>
+                {% empty %}
+                    <tr><td colspan="4">No scans yet.</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="panel">
+        <div class="panel-heading">
+            <h2>Open Findings</h2>
+        </div>
+        <div class="finding-list">
+            {% for finding in open_findings %}
+                <a class="finding-item" href="{{ finding.scan_run.get_absolute_url }}">
+                    <span class="severity-dot severity-{{ finding.severity }}"></span>
+                    <span>
+                        <strong>{{ finding.title }}</strong>
+                        <small>{{ finding.extension.name }} - {{ finding.category }}</small>
+                    </span>
+                </a>
+            {% empty %}
+                <p class="empty-state">No open findings.</p>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endblock %}

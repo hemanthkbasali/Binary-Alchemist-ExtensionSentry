@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block title %}New scan - ExtensionSentry{% endblock %}
+{% block eyebrow %}Static manifest analysis{% endblock %}
+{% block page_title %}New Extension Scan{% endblock %}
+
+{% block content %}
+<form method="post" class="scan-layout">
+    {% csrf_token %}
+    <section class="panel form-panel">
+        <h2>Extension Metadata</h2>
+        {{ form.non_field_errors }}
+        <div class="form-grid">
+            <label><span>Name</span>{{ form.name }}{{ form.name.errors }}</label>
+            <label><span>Extension ID</span>{{ form.extension_id }}{{ form.extension_id.errors }}</label>
+            <label><span>Publisher</span>{{ form.publisher }}{{ form.publisher.errors }}</label>
+            <label><span>Store</span>{{ form.store }}{{ form.store.errors }}</label>
+            <label><span>Version</span>{{ form.version }}{{ form.version.errors }}</label>
+            <label><span>Install base</span>{{ form.install_base }}{{ form.install_base.errors }}</label>
+        </div>
+    </section>
+    <section class="panel form-panel">
+        <div class="panel-heading">
+            <h2>Manifest JSON</h2>
+            <button class="button button-primary" type="submit">Run scan</button>
+        </div>
+        <label class="full-field">
+            <span>{{ form.manifest_json.label }}</span>
+            {{ form.manifest_json }}
+            {{ form.manifest_json.errors }}
+        </label>
+    </section>
+</form>
+{% endblock %}
