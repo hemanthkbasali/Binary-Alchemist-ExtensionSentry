@@ -1,31 +1,29 @@
-Objective
+# ExtensionSentry Forensic Grid
 
-The goal of this project is to provide a simple and effective way to understand the behavior of browser extensions by analyzing their internal structure and permissions before installation.
+Futuristic Django cybersecurity product for static Chrome extension ZIP forensics. Upload an extension archive, watch the processing animation, review deterministic findings, and download a PDF intelligence report.
 
-Overview
+## Run
 
-Browser extensions often request permissions and execute scripts that are not fully understood by users. This project provides a platform to inspect extension files and evaluate their behavior by analyzing their structure and code.
+```powershell
+python -m pip install -r requirements.txt
+python manage.py migrate
+python manage.py seed_demo
+python manage.py runserver
+```
 
-The system focuses on identifying:
-Risky permissions
-Suspicious scripts
-Potential indicators of malicious behavior
+Open `http://127.0.0.1:8000/`.
 
- Tech Stack
+Demo operator login:
 
-Backend: Django (Python)
-Frontend: HTML, CSS, JavaScript
-Styling: Static CSS
-Analysis: Python-based static inspection
+- Email: `analyst@example.com`
+- Password: `SecurePass123!`
 
-Features Implemented
+## Scanner Pipeline
 
-Django-based backend architecture
-Dashboard UI for user interaction
-Template-driven frontend rendering
-Static asset integration (CSS, JS)
-Core application routing and workflow
-Extension upload handling interface
-Manifest permission inspection
-Basic static analysis of extension files
-
+- `scanner/file_handler.py` - safe ZIP extraction, archive limits, manifest discovery
+- `scanner/manifest_analyzer.py` - Chrome manifest permissions, CSP, host access, messaging checks
+- `scanner/js_analyzer.py` - JavaScript static malware heuristics
+- `scanner/communication_analyzer.py` - URLs, domains, IPs, WebSocket and exfil indicators
+- `scanner/scoring_engine.py` - deterministic severity scoring
+- `scanner/report_generator.py` - PDF intelligence report generation
+- `scanner/utils.py` - shared hashing, decoding, entropy, IOC extraction helpers
