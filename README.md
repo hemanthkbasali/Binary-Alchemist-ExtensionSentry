@@ -14,4 +14,5 @@ Final synthesis of risk scoring, reporting output, and UI result presentation is
 ## Next Steps
 - Refine dashboard visuals
 - Validate end-to-end scan flow
-- Final project packaging
+
+- final project packing
