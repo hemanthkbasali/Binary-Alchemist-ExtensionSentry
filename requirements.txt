@@ -1,0 +1,4 @@
+Django>=6.0,<6.1
+reportlab>=4.2,<5.0
+waitress>=3.0,<4.0
+whitenoise>=6.9,<7.0

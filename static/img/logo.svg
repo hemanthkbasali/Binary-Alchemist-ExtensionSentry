@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 72 72" role="img" aria-labelledby="title">
+  <title id="title">ExtensionSentry Forensic Grid</title>
+  <defs>
+    <linearGradient id="g" x1="8" y1="6" x2="66" y2="64" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#67e8f9"/>
+      <stop offset="0.48" stop-color="#34d399"/>
+      <stop offset="1" stop-color="#a78bfa"/>
+    </linearGradient>
+    <filter id="glow" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur stdDeviation="3.5" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  <path fill="#02040a" d="M36 3 8 14v20c0 17.8 11.5 29.4 28 35 16.5-5.6 28-17.2 28-35V14L36 3Z"/>
+  <path fill="none" stroke="url(#g)" stroke-width="3" filter="url(#glow)" d="M36 8.5 14 17v16.8c0 13.8 8.4 24.1 22 29.1 13.6-5 22-15.3 22-29.1V17L36 8.5Z"/>
+  <path fill="url(#g)" d="M25 24h22v6H33v4h12v6H33v4h15v6H25V24Z"/>
+  <circle cx="53" cy="18" r="4" fill="#f87171" filter="url(#glow)"/>
+</svg>
