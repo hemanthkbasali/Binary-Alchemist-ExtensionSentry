@@ -1,0 +1,238 @@
+{% extends "base.html" %}
+{% load cyber_tags %}
+
+{% block title %}Forensic Results — ExtensionSentry{% endblock %}
+
+{% block content %}
+{# ─── TOP ROW: Results Cockpit + Threat Gauge ─────────────── #}
+<section class="landing-command-grid">
+    <article class="glass-panel dense-panel" data-reveal>
+        <div class="panel-head">
+            <h1>ANALYSIS RESULTS // THREAT INTELLIGENCE DASHBOARD</h1>
+            <span class="nav-chip"><span class="status-dot is-live"></span>&nbsp;LIVE</span>
+        </div>
+        <div class="signal-hero">
+            <strong>{{ scan.extension.name }}</strong>
+            <small>SHA {{ metadata.artifact.archive_sha256|default:"unknown" }}</small>
+        </div>
+        <div class="metric-strip metric-strip-4">
+            <div class="metric-tile hot">
+                <span>THREAT SCORE</span>
+                <strong>{{ scan.risk_score }}/100</strong>
+            </div>
+            <div class="metric-tile">
+                <span>NULL BYTES</span>
+                <strong>{{ findings|length }}</strong>
+            </div>
+            <div class="metric-tile amber">
+                <span>MEDIAN</span>
+                <strong>{{ scan.severity_distribution|get_item:'medium'|default:0 }}</strong>
+            </div>
+            <div class="metric-tile">
+                <span>MEAN</span>
+                <strong>{{ scan.severity_distribution|get_item:'info'|default:0 }}</strong>
+            </div>
+        </div>
+        <div class="metric-strip metric-strip-4">
+            <div class="metric-tile">
+                <span>DECLARED PERMS</span>
+                <strong>{{ metadata.manifest.permissions|length|default:0 }}</strong>
+            </div>
+            <div class="metric-tile">
+                <span>HOST SCOPE</span>
+                <strong>{{ metadata.manifest.host_permissions|length|default:0 }}</strong>
+            </div>
+            <div class="metric-tile">
+                <span>EXT URLS</span>
+                <strong>{{ telemetry.urls|default:0 }}</strong>
+            </div>
+            <div class="metric-tile">
+                <span>FINDINGS</span>
+                <strong>{{ findings|length }}</strong>
+            </div>
+        </div>
+        <div class="quick-actions">
+            {% if report %}<a class="neon-button" href="{% url 'download_report' report.id %}">Download Report (PDF)</a>{% endif %}
+            <a class="ghost-button" href="{% url 'scan_console' %}">Run Another Scan</a>
+        </div>
+        <div class="telemetry-thin">
+            <span class="telemetry-chip">QUEUE CLOSED</span>
+            <span class="telemetry-chip">IOC BOARD LIVE</span>
+            <span class="telemetry-chip">REPORT LINK SAFE</span>
+            <span class="telemetry-chip">SCAN RENDER SAFE</span>
+        </div>
+    </article>
+
+    <article class="glass-panel dense-panel" data-reveal>
+        <div class="panel-head">
+            <h2>THREAT GAUGE</h2>
+            <span class="pulse-badge{% if scan.risk_score >= 70 %} red{% elif scan.risk_score >= 40 %} amber{% endif %}">{{ score.threat_level|default:"unknown"|upper }}</span>
+        </div>
+        <div class="risk-core" data-score-ring data-score-value="{{ scan.risk_score }}" style="width:150px;aspect-ratio:1;border-radius:50%;display:grid;place-items:center;margin:0 auto 6px">
+            <span style="font-size:2.4rem;font-weight:900;color:var(--red)">{{ scan.risk_score }}</span>
+            <small style="color:var(--muted);font-size:0.7rem;text-transform:uppercase">{{ score.threat_level|default:"HIGH RISK"|upper }}</small>
+        </div>
+        <p class="gauge-caption">VERDICT: {{ score.verdict|default:"MALICIOUS" }}</p>
+        <div class="metric-strip metric-strip-2">
+            <div class="metric-tile hot">
+                <span>CRITICAL</span>
+                <strong>{{ scan.severity_distribution|get_item:'critical'|default:0 }}</strong>
+            </div>
+            <div class="metric-tile amber">
+                <span>HIGH</span>
+                <strong>{{ scan.severity_distribution|get_item:'high'|default:0 }}</strong>
+            </div>
+        </div>
+        {% if report %}
+            <a class="ghost-button full" href="{% url 'download_report' report.id %}" style="margin-top:8px">Open PDF Report</a>
+        {% endif %}
+    </article>
+</section>
+
+{# ─── MAIN COCKPIT: 3 columns ─────────────────────────────── #}
+<section class="cockpit-main-grid">
+    {# Col 1: Severity + Permissions #}
+    <div class="cockpit-column">
+        <article class="glass-panel dense-panel" data-reveal>
+            <div class="panel-head"><h3>SEVERITY DISTRIBUTION</h3><span class="nav-chip">{{ findings|length }} TOTAL</span></div>
+            <div class="severity-bars">
+                {% for severity in severity_order %}
+                    <div class="severity-row">
+                        <span class="severity-pill severity-{{ severity }}">{{ severity }}</span>
+                        <div class="bar-track"><span data-progress-fill data-progress-value="{{ severity_widths|get_item:severity|default:0 }}"></span></div>
+                        <strong style="font-size:0.72rem">{{ scan.severity_distribution|get_item:severity|default:0 }}</strong>
+                    </div>
+                {% endfor %}
+            </div>
+        </article>
+
+        <article class="glass-panel dense-panel" data-reveal>
+            <div class="panel-head"><h3>TOP FINDINGS</h3><span class="pulse-badge amber">HIGH SIGNAL</span></div>
+            <div class="finding-stream compact-stream">
+                {% for finding in high_signal %}
+                    <div class="finding-line severity-border-{{ finding.severity }}">
+                        <span>{{ finding.get_severity_display }}</span>
+                        <strong>{{ finding.title|truncatechars:52 }}</strong>
+                        <p>{{ finding.description|truncatechars:80 }}</p>
+                    </div>
+                {% empty %}
+                    <div class="finding-line"><strong>NO HIGH-SIGNAL FINDINGS.</strong></div>
+                {% endfor %}
+            </div>
+        </article>
+    </div>
+
+    {# Col 2: IOC Board + Dangerous Permissions #}
+    <div class="cockpit-column">
+        <article class="glass-panel dense-panel" data-reveal>
+            <div class="panel-head"><h3>INDICATORS OF COMPROMISE (IOCs)</h3><span class="nav-chip">{{ telemetry.domains|default:0 }} DOMAINS</span></div>
+            <div class="network-orbit" style="min-height:180px">
+                <span class="node core">EXT</span>
+                {% for domain in metadata.communications.domains|slice:":8" %}
+                    <span class="node satellite orbit-node orbit-node-{{ forloop.counter }}">{{ domain|truncatechars:18 }}</span>
+                {% empty %}
+                    <span class="node satellite orbit-node orbit-node-1">no-external-ioc</span>
+                {% endfor %}
+            </div>
+            <div class="telemetry-thin" style="margin-top:8px">
+                {% for node in results_graph_nodes %}
+                    <span class="telemetry-chip">{{ node|truncatechars:18 }}</span>
+                {% empty %}
+                    <span class="telemetry-chip">NO VERIFIED IOCs</span>
+                {% endfor %}
+            </div>
+            <div class="metric-strip metric-strip-2" style="margin-top:8px;margin-bottom:0">
+                <div class="metric-tile">
+                    <span>URLs</span>
+                    <strong>{{ metadata.communications.urls|length|default:0 }}</strong>
+                </div>
+                <div class="metric-tile">
+                    <span>IPs</span>
+                    <strong>{{ metadata.communications.ips|length|default:0 }}</strong>
+                </div>
+            </div>
+        </article>
+
+        <article class="glass-panel dense-panel" data-reveal>
+            <div class="panel-head"><h3>DANGEROUS PERMISSIONS</h3><span class="pulse-badge amber">MATRIX</span></div>
+            <div class="matrix-stack">
+                <div class="matrix-row" style="grid-template-columns:120px 1fr">
+                    <div class="matrix-meta"><span style="font-size:0.7rem;color:var(--muted);display:block">DECLARED</span><strong style="font-size:0.82rem">{{ metadata.manifest.permissions|length|default:0 }}</strong></div>
+                    <div class="bar-track"><span data-progress-fill data-progress-value="{% widthratio metadata.manifest.permissions|length 12 100 %}"></span></div>
+                </div>
+                <div class="matrix-row" style="grid-template-columns:120px 1fr">
+                    <div class="matrix-meta"><span style="font-size:0.7rem;color:var(--muted);display:block">HOST PERMS</span><strong style="font-size:0.82rem">{{ metadata.manifest.host_permissions|length|default:0 }}</strong></div>
+                    <div class="bar-track"><span data-progress-fill data-progress-value="{% widthratio metadata.manifest.host_permissions|length 8 100 %}"></span></div>
+                </div>
+                <div class="matrix-row" style="grid-template-columns:120px 1fr">
+                    <div class="matrix-meta"><span style="font-size:0.7rem;color:var(--muted);display:block">EXT URLS</span><strong style="font-size:0.82rem">{{ telemetry.urls|default:0 }}</strong></div>
+                    <div class="bar-track"><span data-progress-fill data-progress-value="{% widthratio metadata.javascript.external_urls|length 16 100 %}"></span></div>
+                </div>
+            </div>
+        </article>
+    </div>
+
+    {# Col 3: Artifact Metadata + Scan Summary #}
+    <div class="cockpit-column">
+        <article class="glass-panel dense-panel" data-reveal>
+            <div class="panel-head"><h3>SCAN SUMMARY</h3><span class="nav-chip">EVIDENCE</span></div>
+            <dl class="cyber-dl">
+                <dt>Scan Type</dt><dd>Full Deep Forensic</dd>
+                <dt>File Name</dt><dd>{{ metadata.artifact.original_name|default:"unknown"|truncatechars:22 }}</dd>
+                <dt>File Size</dt><dd>{{ metadata.artifact.archive_size|default:0 }} B</dd>
+                <dt>SHA256</dt><dd style="word-break:break-all;font-size:0.65rem">{{ metadata.artifact.archive_sha256|default:"unknown" }}</dd>
+                <dt>Version</dt><dd>{{ metadata.manifest.version|default:"unknown" }}</dd>
+                <dt>Largest JS</dt><dd>{{ metadata.javascript.largest_js_file.path|default:"none"|truncatechars:20 }}</dd>
+            </dl>
+        </article>
+
+        <article class="glass-panel dense-panel" data-reveal>
+            <div class="panel-head"><h3>RECENT ACTIVITY</h3><span class="pulse-badge">ACTIONS</span></div>
+            <div style="display:grid;gap:6px;margin-bottom:8px">
+                {% if report %}
+                <a class="ghost-button full" href="{% url 'download_report' report.id %}" style="text-align:center">Download Report (PDF)</a>
+                {% endif %}
+                <a class="ghost-button full" href="{% url 'scan_console' %}" style="text-align:center">New Scan</a>
+            </div>
+            <div style="display:grid;gap:5px">
+                <div style="font-size:0.7rem;color:var(--muted);padding:5px 0;border-bottom:1px solid var(--panel-border)">
+                    <span>Scan ID:</span> <strong style="color:var(--cyan);font-family:'JetBrains Mono',monospace">{{ scan.id }}</strong>
+                </div>
+                <div style="font-size:0.7rem;color:var(--muted);padding:5px 0;border-bottom:1px solid var(--panel-border)">
+                    <span>Status:</span> <strong style="color:var(--green)">{{ scan.status|upper }}</strong>
+                </div>
+                <div style="font-size:0.7rem;color:var(--muted);padding:5px 0">
+                    <span>PDF Report:</span>
+                    <strong style="color:{% if report %}var(--green){% else %}var(--muted){% endif %}">{% if report %}READY{% else %}PENDING{% endif %}</strong>
+                </div>
+            </div>
+        </article>
+    </div>
+</section>
+
+{# ─── FULL WIDTH: Findings Board ───────────────────────────── #}
+<section class="glass-panel findings-cockpit dense-panel" data-reveal>
+    <div class="panel-head"><h3>FINDINGS BOARD</h3><span class="nav-chip">{{ findings|length }} TOTAL</span></div>
+    <div class="finding-accordion-list">
+        {% for finding in findings %}
+            <details class="finding-accordion" {% if forloop.first %}open{% endif %}>
+                <summary>
+                    <span class="severity-pill severity-{{ finding.severity }}">{{ finding.severity }}</span>
+                    <div class="finding-summary-copy">
+                        <strong>{{ finding.title|truncatechars:70 }}</strong>
+                        <small>{{ finding.category }} · {{ finding.risk_points }}PT · {{ finding.status }}</small>
+                    </div>
+                    <span class="accordion-toggle" style="color:var(--cyan)">›</span>
+                </summary>
+                <div class="finding-accordion-body">
+                    <p><strong style="color:var(--text)">DESC:</strong> {{ finding.description }}</p>
+                    <p><strong style="color:var(--text)">ACTION:</strong> {{ finding.recommendation }}</p>
+                    <code>{{ finding.evidence }}</code>
+                </div>
+            </details>
+        {% empty %}
+            <p style="color:var(--muted);text-align:center;padding:20px">NO FINDINGS GENERATED.</p>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}

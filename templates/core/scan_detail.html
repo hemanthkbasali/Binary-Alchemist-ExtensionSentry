@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+
+{% block title %}{{ scan.name }} - ExtensionSentry{% endblock %}
+{% block eyebrow %}{{ scan.extension.name }}{% endblock %}
+{% block page_title %}Scan Results{% endblock %}
+{% block header_actions %}
+<form method="post" action="{% url 'report_generate' scan.id %}" class="inline-actions">
+    {% csrf_token %}
+    <select name="report_type" class="small-select">
+        <option value="technical">Technical</option>
+        <option value="executive">Executive</option>
+        <option value="compliance">Compliance</option>
+    </select>
+    <button class="button button-primary" type="submit">Generate report</button>
+</form>
+{% endblock %}
+
+{% block content %}
+<section class="detail-grid">
+    <div class="panel">
+        <h2>Summary</h2>
+        <p class="summary-text">{{ scan.summary }}</p>
+        <dl class="definition-list">
+            <dt>Status</dt><dd>{{ scan.get_status_display }}</dd>
+            <dt>Source</dt><dd>{{ scan.get_source_display }}</dd>
+            <dt>Completed</dt><dd>{{ scan.completed_at|date:"M j, Y H:i"|default:"Pending" }}</dd>
+            <dt>Extension ID</dt><dd>{{ scan.extension.extension_id }}</dd>
+        </dl>
+    </div>
+    <div class="panel risk-panel">
+        <h2>Risk Score</h2>
+        <div class="risk-ring" style="--score: {{ scan.risk_score }}">
+            <span>{{ scan.risk_score }}</span>
+        </div>
+        <div class="severity-chips">
+            {% for severity, count in scan.severity_distribution.items %}
+                <span class="severity-label severity-{{ severity }}">{{ severity|title }} {{ count }}</span>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<section class="panel">
+    <div class="panel-heading">
+        <h2>Findings</h2>
+        <span class="muted">{{ findings|length }} detected</span>
+    </div>
+    <div class="finding-list finding-list-large">
+        {% for finding in findings %}
+            <article class="finding-card">
+                <div class="finding-card-main">
+                    <span class="severity-dot severity-{{ finding.severity }}"></span>
+                    <div>
+                        <h3>{{ finding.title }}</h3>
+                        <p>{{ finding.description }}</p>
+                        <p><strong>Recommendation:</strong> {{ finding.recommendation }}</p>
+                        <code>{{ finding.evidence }}</code>
+                    </div>
+                </div>
+                <form method="post" class="status-form">
+                    {% csrf_token %}
+                    <input type="hidden" name="finding_id" value="{{ finding.id }}">
+                    <select name="status">
+                        {% for value, label in status_choices %}
+                            <option value="{{ value }}" {% if value == finding.status %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                    <button class="button button-secondary" type="submit">Update</button>
+                </form>
+            </article>
+        {% empty %}
+            <p class="empty-state">No findings were detected.</p>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}

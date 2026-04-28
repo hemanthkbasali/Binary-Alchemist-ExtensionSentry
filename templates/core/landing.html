@@ -1,0 +1,214 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}ExtensionSentry — Analyst Console{% endblock %}
+
+{% block content %}
+{# === TOP ROW: Command Bus + Latest Case === #}
+<section class="landing-command-grid">
+    <article class="glass-panel dense-panel" data-reveal>
+        <div class="panel-head">
+            <h1>COMMAND BUS</h1>
+            <span class="nav-chip"><span class="status-dot is-live"></span>&nbsp;LIVE</span>
+        </div>
+
+        {# Row 1: core metrics #}
+        <div class="metric-strip metric-strip-4">
+            <div class="metric-tile">
+                <span>SCANS PROCESSED</span>
+                <strong data-counter="{{ home_metrics.total_scans|default:0 }}">0</strong>
+            </div>
+            <div class="metric-tile hot">
+                <span>HIGH RISK SCANS</span>
+                <strong data-counter="{{ home_metrics.high_risk_count|default:0 }}">0</strong>
+            </div>
+            <div class="metric-tile amber">
+                <span>AVG RISK SCORE</span>
+                <strong>{{ home_metrics.avg_risk|default:0 }}&nbsp;/&nbsp;100</strong>
+            </div>
+            <div class="metric-tile">
+                <span>INDICATORS FOUND</span>
+                <strong data-counter="{{ home_metrics.total_indicators|default:0 }}">0</strong>
+            </div>
+        </div>
+
+        {# Row 2: engine lanes #}
+        <div class="metric-strip metric-strip-4">
+            <div class="metric-tile purple">
+                <span>PERMS ANALYZED</span>
+                <strong data-counter="{{ home_metrics.dangerous_permissions|default:0 }}">0</strong>
+            </div>
+            <div class="metric-tile">
+                <span>JS FILES ANALYZED</span>
+                <strong>--</strong>
+            </div>
+            <div class="metric-tile green">
+                <span>DOMAINS CONTACTED</span>
+                <strong>--</strong>
+            </div>
+            <div class="metric-tile">
+                <span>REPORTS GENERATED</span>
+                <strong data-counter="{{ home_metrics.total_scans|default:0 }}">0</strong>
+            </div>
+        </div>
+
+        <div class="quick-actions">
+            <a class="neon-button" href="{% url 'scan_console' %}">OPEN INTAKE</a>
+            <a class="ghost-button" href="{% url 'threat_lab' %}">DIAGNOSTICS</a>
+        </div>
+        <div class="telemetry-thin">
+            <span class="telemetry-chip">INTAKE READY</span>
+            <span class="telemetry-chip">SCORING CORE</span>
+            <span class="telemetry-chip">MANIFEST LANE</span>
+            <span class="telemetry-chip">JS ENGINE</span>
+            <span class="telemetry-chip">IOC TRACK</span>
+        </div>
+        <small class="auth-signal" style="margin-top:6px;font-size:0.62rem;" data-last-updated>Last Updated: —</small>
+        
+    </article>
+
+    <article class="glass-panel dense-panel" data-reveal>
+        <div class="panel-head">
+            <h2>LATEST CASE</h2>
+            {% if latest_scan %}
+                <span class="pulse-badge{% if latest_case.risk >= 70 %} red{% elif latest_case.risk >= 40 %} amber{% endif %}">
+                    {% if latest_case.risk >= 70 %}HIGH RISK{% elif latest_case.risk >= 40 %}MEDIUM RISK{% else %}LOW RISK{% endif %}
+                </span>
+            {% else %}
+                <span class="pulse-badge">NO CASE</span>
+            {% endif %}
+        </div>
+
+        {% if latest_scan %}
+            <div class="signal-hero">
+                <strong>{{ latest_case.name|truncatechars:40 }}</strong>
+                <small>{% if latest_case.timestamp %}{{ latest_case.timestamp|date:"M j, Y H:i" }}{% else %}—{% endif %}</small>
+            </div>
+            <div class="metric-strip metric-strip-2">
+                <div class="metric-tile {% if latest_case.risk >= 70 %}hot{% elif latest_case.risk >= 40 %}amber{% else %}green{% endif %}">
+                    <span>RISK SCORE</span>
+                    <strong>{{ latest_case.risk }}/100</strong>
+                </div>
+                <div class="metric-tile">
+                    <span>VERDICT</span>
+                    <strong>{{ latest_case.verdict|default:"PENDING"|upper|truncatechars:12 }}</strong>
+                </div>
+            </div>
+            <div class="metric-strip metric-strip-2">
+                <div class="metric-tile">
+                    <span>STATUS</span>
+                    <strong style="color:var(--green)">COMPLETED</strong>
+                </div>
+                <div class="metric-tile">
+                    <span>REPORT</span>
+                    <strong style="color:var({% if latest_case.report_ready %}--green{% else %}--muted{% endif %})">
+                        {% if latest_case.report_ready %}READY{% else %}PENDING{% endif %}
+                    </strong>
+                </div>
+            </div>
+            <a class="ghost-button full" href="{% url 'forensic_results' latest_scan.id %}" style="margin-top:8px">OPEN REPORT</a>
+        {% else %}
+            <div class="signal-hero">
+                <strong>NO CASE ON RECORD</strong>
+                <small>INTAKE PENDING — UPLOAD FIRST ARTIFACT</small>
+            </div>
+            <a class="neon-button full" href="{% url 'scan_console' %}" style="margin-top:8px">START FIRST SCAN</a>
+        {% endif %}
+
+        </article>
+</section>
+
+{# === BOTTOM ROW: Engine Dials + Event Log + Pipeline === #}
+<section class="tri-panel-grid">
+    <article class="glass-panel dense-panel" data-reveal>
+        <div class="panel-head"><h3>ENGINE DIALS</h3><span class="nav-chip">3 LANES</span></div>
+        <div class="gauge-row">
+            {# Manifest — green/cyan #}
+            <div>
+                <div data-score-ring data-score-value="{{ engine_dials.manifest|default:0 }}" style="width:118px;height:118px;aspect-ratio:1;border-radius:50%;display:grid;place-items:center;margin:0 auto;">
+                    <span style="font-size:1.2rem;font-weight:900;color:var(--green)">{{ engine_dials.manifest|default:0 }}</span>
+                </div>
+                <small style="display:block;text-align:center;color:var(--muted);font-size:0.6rem;text-transform:uppercase;margin-top:5px;letter-spacing:0.1em">MANIFEST</small>
+                <small style="display:block;text-align:center;color:var(--muted);font-size:0.58rem;margin-top:2px">Risk Weight</small>
+            </div>
+            {# JS Engine — red/orange #}
+            <div>
+                <div data-score-ring data-score-value="{{ engine_dials.js|default:0 }}" style="width:118px;height:118px;aspect-ratio:1;border-radius:50%;display:grid;place-items:center;margin:0 auto;">
+                    <span style="font-size:1.2rem;font-weight:900;color:var(--red)">{{ engine_dials.js|default:0 }}</span>
+                </div>
+                <small style="display:block;text-align:center;color:var(--muted);font-size:0.6rem;text-transform:uppercase;margin-top:5px;letter-spacing:0.1em">JS ENGINE</small>
+                <small style="display:block;text-align:center;color:var(--muted);font-size:0.58rem;margin-top:2px">Risk Weight</small>
+            </div>
+            {# IOC Track — cyan #}
+            <div>
+                <div data-score-ring data-score-value="{{ engine_dials.ioc|default:0 }}" style="width:118px;height:118px;aspect-ratio:1;border-radius:50%;display:grid;place-items:center;margin:0 auto;">
+                    <span style="font-size:1.2rem;font-weight:900;color:var(--cyan)">{{ engine_dials.ioc|default:0 }}</span>
+                </div>
+                <small style="display:block;text-align:center;color:var(--muted);font-size:0.6rem;text-transform:uppercase;margin-top:5px;letter-spacing:0.1em">IOC TRACK</small>
+                <small style="display:block;text-align:center;color:var(--muted);font-size:0.58rem;margin-top:2px">Risk Weight</small>
+            </div>
+        </div>
+        <p style="text-align:center;font-size:0.65rem;color:var(--muted);margin-top:8px">
+            <span class="status-dot is-live" style="display:inline-block;margin-right:5px"></span>
+            Engine Health: <strong style="color:var(--green)">OPTIMAL</strong>
+        </p>
+    </article>
+
+    <article class="terminal-card dense-panel" data-reveal>
+        <div class="terminal-header">
+            <span></span><span></span><span></span>
+            <strong>live-event-log</strong>
+            <span class="live-badge">● LIVE</span>
+        </div>
+        <div class="terminal-lines" data-terminal="landing">
+            {% for event in event_log %}
+                <p>{{ event }}</p>
+            {% empty %}
+                <p>> idle: waiting for next artifact</p>
+                <p class="info">> intake lane: armed</p>
+                <p class="info">> scoring core: standby</p>
+            {% endfor %}
+        </div>
+    </article>
+
+    <article class="glass-panel dense-panel" data-reveal>
+        <div class="panel-head"><h3>PIPELINE STATUS</h3><span class="nav-chip">STABLE</span></div>
+        <div class="severity-bars" style="gap:9px">
+            <div class="severity-row">
+                <span class="severity-pill" style="border-color:rgba(0,229,255,0.4);color:var(--cyan);background:rgba(0,229,255,0.08)">Intake</span>
+                <div class="bar-track"><span data-progress-fill data-progress-value="{{ pipeline.intake|default:0 }}"></span></div>
+                <strong style="color:var(--cyan);font-size:0.72rem">{{ pipeline.intake|default:0 }}%</strong>
+            </div>
+            <div class="severity-row">
+                <span class="severity-pill" style="border-color:rgba(0,255,133,0.4);color:var(--green);background:rgba(0,255,133,0.08)">Manifest</span>
+                <div class="bar-track"><span data-progress-fill data-progress-value="{{ pipeline.manifest|default:0 }}"></span></div>
+                <strong style="color:var(--green);font-size:0.72rem">{{ pipeline.manifest|default:0 }}%</strong>
+            </div>
+            <div class="severity-row">
+                <span class="severity-pill" style="border-color:rgba(255,179,71,0.4);color:var(--orange);background:rgba(255,179,71,0.08)">JS Anal.</span>
+                <div class="bar-track"><span data-progress-fill data-progress-value="{{ pipeline.js|default:0 }}"></span></div>
+                <strong style="color:var(--orange);font-size:0.72rem">{{ pipeline.js|default:0 }}%</strong>
+            </div>
+            <div class="severity-row">
+                <span class="severity-pill" style="border-color:rgba(0,229,255,0.3);color:var(--cyan);background:rgba(0,229,255,0.05)">IOC Map</span>
+                <div class="bar-track"><span data-progress-fill data-progress-value="85"></span></div>
+                <strong style="color:var(--cyan);font-size:0.72rem">85%</strong>
+            </div>
+            <div class="severity-row">
+                <span class="severity-pill" style="border-color:rgba(0,255,133,0.3);color:var(--green);background:rgba(0,255,133,0.05)">Scoring</span>
+                <div class="bar-track"><span data-progress-fill data-progress-value="100"></span></div>
+                <strong style="color:var(--green);font-size:0.72rem">100%</strong>
+            </div>
+            <div class="severity-row">
+                <span class="severity-pill" style="border-color:rgba(255,179,71,0.3);color:var(--orange);background:rgba(255,179,71,0.05)">Report</span>
+                <div class="bar-track"><span data-progress-fill data-progress-value="{{ pipeline.report|default:0 }}"></span></div>
+                <strong style="color:var(--orange);font-size:0.72rem">{{ pipeline.report|default:0 }}%</strong>
+            </div>
+        </div>
+        <div style="margin-top:10px;padding-top:8px;border-top:1px solid var(--panel-border);display:flex;justify-content:space-between;align-items:center">
+            <span style="font-size:0.62rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em">Overall Progress</span>
+            <strong style="color:var(--green);font-size:0.82rem">{{ pipeline.manifest|default:0 }}%</strong>
+        </div>
+    </article>
+</section>
+{% endblock %}

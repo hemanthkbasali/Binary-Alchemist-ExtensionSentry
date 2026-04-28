@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block title %}Settings - ExtensionSentry{% endblock %}
+{% block eyebrow %}Workspace{% endblock %}
+{% block page_title %}Organization Settings{% endblock %}
+
+{% block content %}
+<section class="detail-grid">
+    <div class="panel">
+        <h2>Workspace</h2>
+        <dl class="definition-list">
+            <dt>Name</dt><dd>{{ organization.name }}</dd>
+            <dt>Plan</dt><dd>{{ organization.get_plan_display }}</dd>
+            <dt>Risk tolerance</dt><dd>{{ organization.risk_tolerance }}/100</dd>
+            <dt>Created</dt><dd>{{ organization.created_at|date:"M j, Y" }}</dd>
+        </dl>
+    </div>
+    <div class="panel">
+        <h2>API Access</h2>
+        <label class="full-field">
+            <span>Bearer token</span>
+            <input class="field-control token-field" type="text" value="{{ organization.api_token }}" readonly data-copy-source>
+        </label>
+        <div class="inline-actions">
+            <button class="button button-secondary" type="button" data-copy-button>Copy token</button>
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="rotate_token">
+                <button class="button button-danger" type="submit">Rotate token</button>
+            </form>
+        </div>
+    </div>
+</section>
+{% endblock %}

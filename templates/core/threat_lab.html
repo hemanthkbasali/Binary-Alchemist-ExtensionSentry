@@ -1,0 +1,194 @@
+{% extends "base.html" %}
+
+{% block title %}Threat Lab — ExtensionSentry{% endblock %}
+
+{% block content %}
+{# ─── TOP ROW: Threat Lab Header + Engine Health ──────────── #}
+<section class="landing-command-grid">
+    <article class="glass-panel dense-panel" data-reveal>
+        <div class="panel-head">
+            <h1>THREAT LAB // ADVANCED FORENSIC ANALYSIS</h1>
+            <span class="nav-chip"><span class="status-dot is-live"></span>&nbsp;ENGINE ROOM</span>
+        </div>
+        <div class="metric-strip metric-strip-4">
+            <div class="metric-tile">
+                <span>RULE FAMILIES</span>
+                <strong data-counter="{{ rules|length }}">0</strong>
+            </div>
+            <div class="metric-tile">
+                <span>ACTIVE THREATS</span>
+                <strong data-counter="{{ history_total }}">0</strong>
+            </div>
+            <div class="metric-tile amber">
+                <span>INDICATORS</span>
+                <strong>1,247</strong>
+            </div>
+            <div class="metric-tile">
+                <span>AVG RISK SCORE</span>
+                <strong>{{ avg_global_score }}/100</strong>
+            </div>
+        </div>
+        <div class="metric-strip metric-strip-4">
+            <div class="metric-tile green">
+                <span>MANIFEST LANE</span>
+                <strong>{{ engine_health.manifest }}%</strong>
+            </div>
+            <div class="metric-tile {% if engine_health.js > 75 %}hot{% elif engine_health.js > 40 %}amber{% else %}green{% endif %}">
+                <span>JS ENGINE</span>
+                <strong>{{ engine_health.js }}%</strong>
+            </div>
+            <div class="metric-tile">
+                <span>IOC TRACK</span>
+                <strong>{{ engine_health.ioc }}%</strong>
+            </div>
+            <div class="metric-tile green">
+                <span>SCORING CORE</span>
+                <strong>{{ engine_health.scoring }}%</strong>
+            </div>
+        </div>
+        <div class="telemetry-thin">
+            <span class="telemetry-chip">INTAKE READY</span>
+            <span class="telemetry-chip">RULE BUS</span>
+            <span class="telemetry-chip">ENGINE DIAG</span>
+            <span class="telemetry-chip">PDF PATH</span>
+        </div>
+        <div class="wave-surface" data-wave></div>
+    </article>
+
+    <article class="glass-panel dense-panel" data-reveal>
+        <div class="panel-head"><h3>ENGINE HEALTH</h3><span class="pulse-badge">LIVE</span></div>
+        <div class="engine-health-grid">
+            <div class="health-cell"><span>ARCHIVE SAFETY</span><strong style="color:var(--green)">{{ engine_health.archive }}%</strong></div>
+            <div class="health-cell"><span>MANIFEST LANE</span><strong style="color:var(--cyan)">{{ engine_health.manifest }}%</strong></div>
+            <div class="health-cell"><span>JS ENGINE</span><strong style="color:{% if engine_health.js > 60 %}var(--red){% else %}var(--orange){% endif %}">{{ engine_health.js }}%</strong></div>
+            <div class="health-cell"><span>IOC TRACK</span><strong style="color:var(--cyan)">{{ engine_health.ioc }}%</strong></div>
+            <div class="health-cell"><span>SCORING CORE</span><strong style="color:var(--green)">{{ engine_health.scoring }}%</strong></div>
+            <div class="health-cell"><span>PDF SYNTHESIS</span><strong style="color:var(--green)">{{ engine_health.pdf }}%</strong></div>
+        </div>
+    </article>
+</section>
+
+{# ─── MAIN LAB GRID ───────────────────────────────────────── #}
+<section class="lab-main-grid">
+    <div style="display:grid;gap:10px;align-content:start">
+        <article class="glass-panel dense-panel" data-reveal>
+            <div class="panel-head"><h3>RULE MATRIX</h3><span class="nav-chip">{{ rules|length }} RULES</span></div>
+            <div class="matrix-stack">
+                {% for code, title, detail, value in rules %}
+                    <div class="matrix-row matrix-rule-row">
+                        <div class="matrix-meta">
+                            <span class="pulse-badge{% if value >= 70 %} red{% elif value >= 40 %} amber{% endif %}">{{ code }}</span>
+                            <div>
+                                <strong>{{ title }}</strong>
+                                <small>{{ detail|truncatechars:40 }}</small>
+                            </div>
+                        </div>
+                        <div class="bar-track"><span data-progress-fill data-progress-value="{{ value }}"></span></div>
+                    </div>
+                {% endfor %}
+            </div>
+        </article>
+
+        <article class="glass-panel dense-panel" data-reveal>
+            <div class="panel-head"><h3>TOP IOC DOMAINS</h3><span class="nav-chip">AGG</span></div>
+            {% if domain_hits %}
+            <div style="display:grid;gap:5px">
+                <div style="display:grid;grid-template-columns:1fr 80px 80px;gap:8px;padding:4px 8px;font-size:0.6rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;border-bottom:1px solid var(--panel-border)">
+                    <span>DOMAIN</span><span>DETECTIONS</span><span>RISK</span>
+                </div>
+                {% for domain, count in domain_hits %}
+                    <div style="display:grid;grid-template-columns:1fr 80px 80px;gap:8px;padding:6px 8px;border:1px solid var(--panel-border);border-radius:8px;background:rgba(0,0,0,0.3);align-items:center">
+                        <span style="font-family:'JetBrains Mono',monospace;font-size:0.7rem;color:var(--cyan);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ domain|truncatechars:28 }}</span>
+                        <span style="font-size:0.72rem;font-weight:700;color:var(--text)">{{ count }}</span>
+                        <span class="severity-pill {% if count >= 5 %}severity-critical{% elif count >= 3 %}severity-high{% else %}severity-medium{% endif %}" style="text-align:center">
+                            {% if count >= 5 %}CRITICAL{% elif count >= 3 %}HIGH{% else %}MEDIUM{% endif %}
+                        </span>
+                    </div>
+                {% endfor %}
+            </div>
+            {% else %}
+                <p style="color:var(--muted);text-align:center;padding:16px;font-size:0.76rem">NO IOC HISTORY.</p>
+            {% endif %}
+        </article>
+
+        <article class="glass-panel dense-panel" data-reveal>
+            <div class="panel-head"><h3>TOP DANGEROUS PERMISSIONS</h3><span class="pulse-badge amber">AGG</span></div>
+            {% if permission_hits %}
+            <div style="display:grid;gap:5px">
+                <div style="display:grid;grid-template-columns:1fr 60px 80px;gap:8px;padding:4px 8px;font-size:0.6rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;border-bottom:1px solid var(--panel-border)">
+                    <span>PERMISSION</span><span>SCANS</span><span>RISK</span>
+                </div>
+                {% for perm, count in permission_hits %}
+                    <div style="display:grid;grid-template-columns:1fr 60px 80px;gap:8px;padding:6px 8px;border:1px solid var(--panel-border);border-radius:8px;background:rgba(0,0,0,0.3);align-items:center">
+                        <span style="font-family:'JetBrains Mono',monospace;font-size:0.72rem;color:var(--orange);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ perm|truncatechars:20 }}</span>
+                        <span style="font-size:0.72rem;font-weight:700">{{ count }}</span>
+                        <span class="severity-pill {% if count >= 5 %}severity-critical{% elif count >= 3 %}severity-high{% else %}severity-medium{% endif %}" style="text-align:center">
+                            {% if count >= 5 %}CRITICAL{% elif count >= 3 %}HIGH{% else %}MEDIUM{% endif %}
+                        </span>
+                    </div>
+                {% endfor %}
+            </div>
+            {% else %}
+                <p style="color:var(--muted);text-align:center;padding:16px;font-size:0.76rem">NO PERMISSION HISTORY.</p>
+            {% endif %}
+        </article>
+    </div>
+
+    <div class="lab-side-column">
+        <article class="terminal-card dense-panel" data-reveal>
+            <div class="terminal-header">
+                <span></span><span></span><span></span>
+                <strong>engine-diagnostics-log</strong>
+                <span class="live-badge">● LIVE</span>
+            </div>
+            <div class="terminal-lines" data-terminal="lab">
+                {% for line in diagnostics_log %}
+                    <p>{{ line }}</p>
+                {% empty %}
+                    <p class="info">> lab engine: initializing</p>
+                    <p>> diagnostics: running</p>
+                {% endfor %}
+            </div>
+        </article>
+
+        <article class="glass-panel dense-panel" data-reveal>
+            <div class="panel-head"><h3>CASE FILES</h3><span class="pulse-badge">HISTORY</span></div>
+            <div class="lab-case-table">
+                {% for scan in recent_scans %}
+                    <a class="lab-case-row" href="{% url 'forensic_results' scan.id %}">
+                        <div>
+                            <strong>{{ scan.extension.name|truncatechars:22 }}</strong>
+                            <small>{{ scan.created_at|date:"M j, H:i" }}</small>
+                        </div>
+                        <span class="list-score">{{ scan.risk_score }}/100</span>
+                    </a>
+                {% empty %}
+                    <p style="color:var(--muted);text-align:center;padding:12px;font-size:0.76rem">NO CASE FILES.</p>
+                {% endfor %}
+            </div>
+        </article>
+
+        <article class="glass-panel dense-panel" data-reveal>
+            <div class="panel-head"><h3>SYSTEM ACTIVITY</h3><span class="nav-chip">LIVE</span></div>
+            <div style="display:grid;gap:7px">
+                <div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--panel-border);font-size:0.78rem">
+                    <span style="color:var(--muted)">📊 Scans Today</span>
+                    <strong style="color:var(--cyan)">{{ history_total }}</strong>
+                </div>
+                <div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--panel-border);font-size:0.78rem">
+                    <span style="color:var(--muted)">📄 Reports Today</span>
+                    <strong style="color:var(--cyan)">{{ history_total }}</strong>
+                </div>
+                <div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--panel-border);font-size:0.78rem">
+                    <span style="color:var(--muted)">🔎 Indicators</span>
+                    <strong style="color:var(--orange)">{{ rules|length }}</strong>
+                </div>
+                <div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;font-size:0.78rem">
+                    <span style="color:var(--muted)">🛡 Avg Score</span>
+                    <strong style="color:{% if avg_global_score >= 70 %}var(--red){% elif avg_global_score >= 40 %}var(--orange){% else %}var(--green){% endif %}">{{ avg_global_score }}</strong>
+                </div>
+            </div>
+        </article>
+    </div>
+</section>
+{% endblock %}
