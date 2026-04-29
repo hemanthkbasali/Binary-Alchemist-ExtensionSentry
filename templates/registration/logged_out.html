@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% block title %}Node Closed - ExtensionSentry{% endblock %}
+
+{% block content %}
+<section class="auth-layout">
+    <div class="auth-card">
+        <p class="kicker">Session Closed</p>
+        <h1>Operator node disconnected.</h1>
+        <a class="neon-button full" href="{% url 'login' %}">Reconnect</a>
+    </div>
+</section>
+{% endblock %}
