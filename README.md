@@ -66,7 +66,7 @@ Analysis Engine:
 ## Setup Instructions
 
 ```bash
-git clone <your-repo-link>
+git clone <https://github.com/hemanthkbasali/Binary-Alchemist-ExtensionSentry>
 cd ExtensionSentry
 pip install -r requirements.txt
 python manage.py runserver
